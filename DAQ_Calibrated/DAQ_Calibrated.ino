@@ -223,7 +223,6 @@ void collectData()
     
   }
    myFile.close();
-  
 }
 
 double readThermo(int therm)

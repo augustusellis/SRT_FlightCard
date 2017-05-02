@@ -27,7 +27,6 @@ int stat=0;//status value; '0' is closed '1' is open
 void setup() {
   
   Valve.attach(9);// attaches the valve servo on pin 9 to the servo object
-  Valve.write(pClose);//Set default position to closed
   delay(500);
   Serial.begin(baud);// Initializes Serial object; Serial will automatically 
                     // transmit and revcive from the RX and TX pins 
@@ -35,7 +34,6 @@ void setup() {
   //Valve.write(pClose);<---- Don't uncommment this
   delay(2000);
   menu();
-  Serial.println(Valve.read());
 }
 
 void loop() {
@@ -137,12 +135,12 @@ void moveToPos(int b, int e)
   for (int i = b; i >= e; i -= 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     Valve.write(i);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15ms for the servo to reach the position
+    delay(3);                       // waits 15ms for the servo to reach the position
   }
   for (int i = b; i <= e; i += 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     Valve.write(i);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15ms for the servo to reach the position
+    delay(3);                       // waits 15ms for the servo to reach the position
   }
   //sopl(String(myservo.read()));
 }

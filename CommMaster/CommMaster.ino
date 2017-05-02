@@ -64,7 +64,7 @@ void setup() {
 }
 
 void loop() {
-
+  Serial.println("Help");
   inputCMD = Serial.read();
   if (mySerial.available())
   {
