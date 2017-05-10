@@ -44,122 +44,122 @@ String abortLaunch;
 
 
 void setup() {
-  // Initiate Serial Connections to Launchbox (Hardware Serial) and DAQ (Software Serial)
-  DAQSerial.begin(baud);
-  Serial.begin(baud);
-  //Initiate
-  pinMode(motorControllerPowerPin, OUTPUT);
-  pinMode(valveSignalPWMPin, OUTPUT);
-  valveServo.attach(valveSignalPWMPin);// attaches the valve servo object to the PWM output pin
+        // Initiate Serial Connections to Launchbox (Hardware Serial) and DAQ (Software Serial)
+        DAQSerial.begin(baud);
+        Serial.begin(baud);
+        //Initiate
+        pinMode(motorControllerPowerPin, OUTPUT);
+        pinMode(valveSignalPWMPin, OUTPUT);
+        valveServo.attach(valveSignalPWMPin);// attaches the valve servo object to the PWM output pin
 
 }
 
 void loop() {
-  //Set valve servo to close on the first loop
-  if (firstTime == 1)
-  {
-    valveClose(valveServo);
-    firstTime = 0;
-  }
+        //Set valve servo to close on the first loop
+        if (firstTime == 1)
+        {
+                valveClose(valveServo);
+                firstTime = 0;
+        }
 
-  //Read in commands from Launch Box and Respond Accordingly
-  inputCMD = Serial.read();
-  //Output data from DAQSerial back onto hardware serial (this sends the data back to the launchbox)
-  if (DAQSerial.available())
-  {
-    data = DAQSerial.readStringUntil('\n');
-    Serial.println(data);
-  }
-  switch (inputCMD) {
-    case 'a': //abort sequence -- negates all launch-ready statuses
-      launchTime = 0;
-      launchReady = 0;
-      finalLaunchReady = 0;
-      Serial.println("xCMabo");
-      break;
-    case 'i': //initialize DAQ Arduino
-      DAQSerial.println('i');
-      Serial.println("CM: i passed");
-      break;
-    case 't':
-      DAQSerial.println('t');
-      Serial.println("CM: t passed");
-      break;
-    case 'c':
-      DAQSerial.println('c');
-      Serial.println("CM: c passed");
-      break;
-    case 'e':
-      DAQSerial.println('e');
-      Serial.println("CM: e passed");
-      break;
-    case 'r':
-      launchReady = 1;
-      //    Serial.println("First Launch Ready is " + launchReady);
-      Serial.println("xCMrl11");
-      break;
-    case 'f':
-      finalLaunchReady = 1;
-      //    Serial.println("Second Launch Ready is " + finalLaunchReady);
-      Serial.println("xCMrl21");
-      break;
-    case 'u':
-      launchReady = 0;
-      //    Serial.println("First Launch Ready is " + launchReady);
-      Serial.println("xCMrl10");
-      break;
-    case 'j':
-      finalLaunchReady = 0;
-      //    Serial.println("Second Launch Ready is " + finalLaunchReady);
-      Serial.println("xCMrl20");
-      break;
-    case 'l':
-      if (launchReady && finalLaunchReady)
-      {
-        //      countdown();
-        Serial.println("xCMlau");
-        launchTime = 1;
-      }
-      else
-      {
-        Serial.println("CM: LR1 and LR2 not ready");
-      }
-      break;
-    case '_':
-      //turn on servo power
-      setServoPower(1, motorControllerPowerPin);
-      break;
-    case '/':
-      //turn off servo power
-      setServoPower(0, motorControllerPowerPin);
-      break;
-    case '!':
-      //open servo
-      valveOpen(valveServo);
-      break;
-    case '#':
-      //close servo
-      valveClose(valveServo);
-      break;
-    case '~':
-      //get servo status
-      Serial.println("~" + String(valveServo.read()) + " :: " + String((valveStatus(valveServo) == 1) ? "open" : "closed"));
-      break;
-    default:
-      break;
-  }
+        //Read in commands from Launch Box and Respond Accordingly
+        inputCMD = Serial.read();
+        //Output data from DAQSerial back onto hardware serial (this sends the data back to the launchbox)
+        if (DAQSerial.available())
+        {
+                data = DAQSerial.readStringUntil('\n');
+                Serial.println(data);
+        }
+        switch (inputCMD) {
+        case 'a': //abort sequence -- negates all launch-ready statuses
+                launchTime = 0;
+                launchReady = 0;
+                finalLaunchReady = 0;
+                Serial.println("xCMabo");
+                break;
+        case 'i': //initialize DAQ Arduino
+                DAQSerial.println('i');
+                Serial.println("CM: i passed");
+                break;
+        case 't':
+                DAQSerial.println('t');
+                Serial.println("CM: t passed");
+                break;
+        case 'c':
+                DAQSerial.println('c');
+                Serial.println("CM: c passed");
+                break;
+        case 'e':
+                DAQSerial.println('e');
+                Serial.println("CM: e passed");
+                break;
+        case 'r':
+                launchReady = 1;
+                //    Serial.println("First Launch Ready is " + launchReady);
+                Serial.println("xCMrl11");
+                break;
+        case 'f':
+                finalLaunchReady = 1;
+                //    Serial.println("Second Launch Ready is " + finalLaunchReady);
+                Serial.println("xCMrl21");
+                break;
+        case 'u':
+                launchReady = 0;
+                //    Serial.println("First Launch Ready is " + launchReady);
+                Serial.println("xCMrl10");
+                break;
+        case 'j':
+                finalLaunchReady = 0;
+                //    Serial.println("Second Launch Ready is " + finalLaunchReady);
+                Serial.println("xCMrl20");
+                break;
+        case 'l':
+                if (launchReady && finalLaunchReady)
+                {
+                        //      countdown();
+                        Serial.println("xCMlau");
+                        launchTime = 1;
+                }
+                else
+                {
+                        Serial.println("CM: LR1 and LR2 not ready");
+                }
+                break;
+        case '_':
+                //turn on servo power
+                setServoPower(1, motorControllerPowerPin);
+                break;
+        case '/':
+                //turn off servo power
+                setServoPower(0, motorControllerPowerPin);
+                break;
+        case '!':
+                //open servo
+                valveOpen(valveServo);
+                break;
+        case '#':
+                //close servo
+                valveClose(valveServo);
+                break;
+        case '~':
+                //get servo status
+                Serial.println("~" + String(valveServo.read()) + " :: " + String((valveStatus(valveServo) == 1) ? "open" : "closed"));
+                break;
+        default:
+                break;
+        }
 
-  // If all launch ready signals have been set, then initiate launch procedures
-  if (launchReady && finalLaunchReady && launchTime)
-  {
-    launch();
-  }
+        // If all launch ready signals have been set, then initiate launch procedures
+        if (launchReady && finalLaunchReady && launchTime)
+        {
+                launch();
+        }
 
 }
 
 void launch()
 {
-  //turn Servo -- we dont do this since the main arduino is not in charge of the launch
+        //turn Servo -- we dont do this since the main arduino is not in charge of the launch. Commands are sent directly by the team.
 }
 
 
@@ -167,48 +167,47 @@ void launch()
 // Servo and Motor Controller Functions
 void setServoPower(int servoPowerOption, int powerPin)
 {
-  if (servoPowerOption == 1)
-  {
-    digitalWrite(powerPin, HIGH);
-  }
-  if (servoPowerOption == 0)
-  {
-    digitalWrite(powerPin, LOW);
-  }
+        if (servoPowerOption == 1)
+        {
+                digitalWrite(powerPin, HIGH);
+        }
+        if (servoPowerOption == 0)
+        {
+                digitalWrite(powerPin, LOW);
+        }
 }
 void setValvePosition(Servo &valveServo, int newValvePosition)
 // valveServo       --> reference to the servo to turn
 // newValvePosition --> new angular position for the servo to turn to
 {
-  // int cpos = valveServo.read();
-  //for (int i = cpos; i >= newValvePosition; i -= 1) { // goes from 0 degrees to 180 degrees
-  // in steps of 1 degree
-  valveServo.write(newValvePosition);              // tell servo to go to position in variable 'pos'
-  //  delay(3);                       // waits 15ms for the servo to reach the position
-  // }
+        // int cpos = valveServo.read();
+        //for (int i = cpos; i >= newValvePosition; i -= 1) { // goes from 0 degrees to 180 degrees
+        // in steps of 1 degree
+        valveServo.write(newValvePosition);        // tell servo to go to position in variable 'pos'
+        //  delay(3);                       // waits 15ms for the servo to reach the position
+        // }
 }
 void valveOpen(Servo &valveServo)
 {
-  int pOpen = 30; //Adjustable Open Position
-  setValvePosition(valveServo, pOpen);
+        int pOpen = 30; //Adjustable Open Position
+        setValvePosition(valveServo, pOpen);
 }
 void valveClose(Servo &valveServo)
 {
-  int pClose = 140; //Adjustable Closed Postion
-  setValvePosition(valveServo, pClose);
+        int pClose = 140; //Adjustable Closed Postion
+        setValvePosition(valveServo, pClose);
 }
 int valveStatus(Servo &valveServo)
 {
-  int position = valveServo.read();
-  int status = 0;
-  if (position < 50)
-  {
-    status = 1;
-  }
-  else
-  {
-    status = 0;
-  }
-  return status;
+        int position = valveServo.read();
+        int status = 0;
+        if (position < 50)
+        {
+                status = 1;
+        }
+        else
+        {
+                status = 0;
+        }
+        return status;
 }
-
