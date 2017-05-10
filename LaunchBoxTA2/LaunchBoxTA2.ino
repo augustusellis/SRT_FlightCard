@@ -35,18 +35,17 @@
 //0 - chA
 //q - chB
 
-#include <TimerOne.h>
 #include "LiquidCrystal.h"
 
-double countTest;
+int countTest;
 int count2;
 
 char missionCMD;
 String data;
 LiquidCrystal lcd = LiquidCrystal(39, 41, 45, 47, 49, 51);
-
-//int n2OVentTime = 5*1000000;
-//int qdAirOpenTime = 2*1000000;
+const int delayTime = 1000;
+const int lowBuzzLevel = 2;  //buzzer pwm value for "quiet" mode
+const int willBuzz = HIGH; //decides if buzzer sounds at full volume when igniter is armed
 
 int systemArmState = LOW;
 int igniterArmState = LOW;
@@ -77,7 +76,7 @@ int qdAirClose = 24;
 int aux = 22;
 int chA = 31;
 int chB = 29;
-int igniter = 33;
+int igniter = 44;
 
 int timerTrigger = 7;
 int timerCheck = 8;
@@ -89,6 +88,9 @@ int prev2;
 int prev3;
 int prev4;
 double solDelay;
+
+int prev12V = LOW;
+int prev24V = LOW;
 
 int igniterTest = 42;
 int preArmMonitor = 35;
@@ -112,18 +114,18 @@ boolean checkBatts = 0;
 void setup()
 {
   Serial.begin(9600);
-  Serial1.begin(9600);
+  Serial2.begin(9600);
   delay(100);
   Serial.print("+++");
+  //  delay(100);
+  //  Serial.println("ATBD 7");
   delay(100);
-  Serial.println("ATBD 7");
-  delay(100);
-  Serial.println("b");
+  Serial.println("bb");
   delay(100);
   Serial.flush();
   delay(2);
   Serial.end();
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   digitalWrite(systemArm, LOW);
   digitalWrite(igniterArm, LOW);
@@ -170,18 +172,14 @@ void setup()
   pinMode(preArmMonitor, INPUT);
   pinMode(igniterDisable, INPUT);
 
-  //  pinMode(loadCellPin, INPUT);
-  //  pinMode(battery1, INPUT);
-  //  pinMode(battery2, INPUT);
-  //  pinMode(battery3, INPUT);
-
-  //  Timer1.initialize(solDelay);
-  //  Timer1.attachInterrupt(Timer1_Interrupt);
-
   lcd.begin(16, 2);
   lcd.clear();
+  lcd.print("Texas A&M SRT");
+  lcd.setCursor(0, 1);
   lcd.print("Launch Box");
-  delay(1000);
+  delay(1500);
+
+  dispBattVoltage();
 
 }
 
@@ -200,8 +198,6 @@ void loop()
     //  Serial.print(random(0,100));
     //  Serial.print(",");
     //  Serial.println("1");
-    lcd.clear();
-    lcd.print(countTest);
     countTest = countTest + 1;
 
     if (checkBatts)
@@ -209,106 +205,80 @@ void loop()
       batts = "v";
       batts = batts + String(analogRead(battery9), DEC) + ",";
       batts = batts + String(analogRead(battery12), DEC) + ",";
-      batts = batts + String(analogRead(battery24), DEC) + ",";
+      batts = batts + String(analogRead(battery24), DEC);
       Serial.println(batts);
     }
     checkBatts = !checkBatts;
   }
   count2 = count2 + 1;
 
-  //  Serial.print("y");
-  //  Serial.print(random(0,100));
-  //  Serial.print(",");
-  //  Serial.print(random(0,100));
-  //  Serial.print(",");
-  //  Serial.println(random(0,100));
-  //
-  //  Serial.print("w");
-  //  Serial.println(random(0,100));
-
   delay(100);
   if (Serial.available() > 0)
   {
     missionCMD = Serial.read();
-    Serial1.print(missionCMD);
+    Serial2.print(missionCMD);
 
     switch (missionCMD) {
       case 'a':
-        Serial1.println('a');
+        Serial2.println('a');
         readyLaunch1 = 0;
         readyLaunch2 = 0;
         Serial.println("xLBabo");
-        lcd.clear();
-        lcd.print("xLBabo");
         break;
       case 'i':
-        Serial1.println('i');
+        Serial2.println('i');
         Serial.println("LB: i passed");
-        lcd.clear();
-        lcd.print("LB: i passed");
         break;
       case 't':
-        Serial1.println('t');
+        Serial2.println('t');
         Serial.println("LB: t passed");
-        lcd.clear();
-        lcd.print("LB: t passed");
         break;
       case 'c':
-        Serial1.println('c');
+        Serial2.println('c');
         Serial.print(random(0, 100));
         Serial.print("    ");
         Serial.println("LB: c passed");
-        lcd.clear();
-        lcd.print("LB: c passed");
 
         break;
       case 'e':
-        Serial1.println('e');
+        Serial2.println('e');
         Serial.println("LB: e passed");
-        lcd.clear();
-        lcd.print("LB: e passed");
         break;
       case 'r':
-        Serial1.println('r');
+        Serial2.println('r');
         readyLaunch1 = 1;
         //      Serial.println("LB: r passed");
         Serial.println("xLBrl11");
-        lcd.clear();
-        lcd.print("xLBrl11");
         break;
       case 'f':
-        Serial1.println('f');
+        Serial2.println('f');
         readyLaunch2 = 1;
         //      Serial.println("LB: f passed");
         Serial.println("xLBrl21");
-        lcd.clear();
-        lcd.print("xLBrl21");
         break;
       case 'u':
-        Serial1.println('u');
+        Serial2.println('u');
         readyLaunch1 = 0;
         //      Serial.println("LB: u passed");
         Serial.println("xLBrl10");
-        lcd.clear();
-        lcd.print("xLBrl10");
         break;
       case 'j':
-        Serial1.println('j');
+        Serial2.println('j');
         readyLaunch2 = 0;
         //      Serial.println("LB: j passed");
         Serial.println("xLBrl20");
-        lcd.clear();
-        lcd.print("xLBrl20");
         break;
       case 'l':
         if (readyLaunch1 && readyLaunch2)
         {
-          Serial1.println('l');
+          Serial2.println('l');
           igniterState = 1;
           digitalWrite(igniter, igniterState);
           Serial.println("xLBlau");
           lcd.clear();
-          lcd.print("xLBlau");
+          lcd.print("WARNING!");
+          lcd.setCursor(0, 1);
+          lcd.print("IGNITER IS ON");
         }
         else
         {
@@ -319,47 +289,39 @@ void loop()
         igniterState = 0;
         digitalWrite(igniter, igniterState);
         Serial.println("xLBnolau");
-        lcd.clear();
-        lcd.print("xLBnolau");
+        dispBattVoltage();
         break;
       case 's':
-        Serial1.println('s');
+        Serial2.println('s');
         Serial.println("LB: s passed");
-        lcd.clear();
-        lcd.print("LB: s passed");
         break;
       case 'p':
         systemArmState = 1;
         digitalWrite(systemArm, systemArmState);
         //      Serial.print("System Armed");
         Serial.println("xsys1");
-        lcd.clear();
-        lcd.print("xsys1");
+        dispBattVoltage();
         break;
       case 'm':
         systemArmState = 0;
         digitalWrite(systemArm, systemArmState);
         //      Serial.print("System Disarmed");
         Serial.println("xsys0");
-        lcd.clear();
-        lcd.print("xsys0");
+        dispBattVoltage();
         break;
       case 'n':
         igniterArmState = 1;
         digitalWrite(igniterArm, igniterArmState);
         //      Serial.print("Igniter Armed");
+        digitalWrite(buzzer, willBuzz);
         Serial.println("xign1");
-        lcd.clear();
-        lcd.print("xign1");
-
         break;
       case 'o':
         igniterArmState = 0;
         digitalWrite(igniterArm, igniterArmState);
         //      Serial.print("Igniter Disarmed");
+        digitalWrite(buzzer, igniterArmState);
         Serial.println("xign0");
-        lcd.clear();
-        lcd.print("xign0");
         break;
       case 'k':
         if (igniterArmState != LOW)
@@ -373,14 +335,10 @@ void loop()
         if (igniterContTestState)
         {
           Serial.println("xictF");
-          lcd.clear();
-          lcd.print("xictF");
         }
         else
         {
           Serial.println("xictP");
-          lcd.clear();
-          lcd.print("xictP");
         }
         digitalWrite(igniterContTest, LOW);
         break;
@@ -390,145 +348,133 @@ void loop()
         //      digitalWrite(n2OFillOpen, HIGH);
         Serial.println("xn2fo");
         lcd.clear();
-        lcd.print("xn2fo");
+        lcd.print("N2O Fill");
+        lcd.setCursor(0, 1);
+        lcd.print("Open");
         break;
       case '2':
         actuateSolenoid(n2OFillClose);
         //      Serial.println("N2O Fill Close");
         Serial.println("xn2fc");
         lcd.clear();
-        lcd.print("xn2fc");
+        lcd.print("N2O Fill");
+        lcd.setCursor(0, 1);
+        lcd.print("Closed");
         break;
       case '3':
         actuateSolenoid(n2OVentOpen);
         //      Serial.println("N2O Vent Open");
         Serial.println("xn2vo");
         lcd.clear();
-        lcd.print("xn2vo");
+        lcd.print("N2O Vent");
+        lcd.setCursor(0, 1);
+        lcd.print("Open");
         break;
       case '4':
         actuateSolenoid(n2OVentClose);
         //      Serial.println("N2O Vent Close");
         Serial.println("xn2vc");
         lcd.clear();
-        lcd.print("xn2vc");
+        lcd.print("N2O Vent");
+        lcd.setCursor(0, 1);
+        lcd.print("Closed");
         break;
       case '5':
         actuateSolenoid(oxyFillOpen);
         //      Serial.println("Oxygen Fill Open");
         Serial.println("xoxyo");
         lcd.clear();
-        lcd.print("xoxyo");
+        lcd.print("Oxygen Flood");
+        lcd.setCursor(0, 1);
+        lcd.print("Open");
         break;
       case '6':
         actuateSolenoid(oxyFillClose);
         //      Serial.println("Oxygen Fill Close");
         Serial.println("xoxyc");
         lcd.clear();
-        lcd.print("xoxyc");
+        lcd.print("Oxygen Flood");
+        lcd.setCursor(0, 1);
+        lcd.print("Closed");
         break;
       case '7':
         actuateSolenoid(qdAirOpen);
         //      Serial.println("QD Air Open");
         Serial.println("xqdao");
         lcd.clear();
-        lcd.print("xqdao");
+        lcd.print("Q.D. Air");
+        lcd.setCursor(0, 1);
+        lcd.print("Open");
         break;
       case '8':
-        //      digitalWrite(qdAirClose, HIGH);
-        //      delay(1500);
-        //      digitalWrite(qdAirClose, LOW);
-        //      delay(1500);
         actuateSolenoid(qdAirClose);
-        //      prevSolenoid = qdAirClose;
-        //      Serial.println("QD Air Close");
         Serial.println("xqdac");
         lcd.clear();
-        lcd.print("xqdac");
+        lcd.print("Q.D. Air");
+        lcd.setCursor(0, 1);
+        lcd.print("Closed");
         break;
       case '9':
         digitalWrite(aux, HIGH);
         Serial.println("xaux1");
-        lcd.clear();
-        lcd.print("xaux1");
         break;
       case '0':
         digitalWrite(chA, HIGH);
         Serial.println("xchA1");
-        lcd.clear();
-        lcd.print("xchA1");
         break;
       case 'q':
         digitalWrite(chB, HIGH);
         Serial.println("xchB1");
-        lcd.clear();
-        lcd.print("xchB1");
         break;
       case 'b':
         digitalWrite(buzzer, HIGH);
         Serial.println("xbuz1");
-        lcd.clear();
-        lcd.print("xbuz1");
         break;
       case 'z':
         digitalWrite(aux, LOW);
         Serial.println("xaux0");
-        lcd.clear();
-        lcd.print("xaux0");
         break;
       case 'y':
         digitalWrite(chA, LOW);
         Serial.println("xchA0");
-        lcd.clear();
-        lcd.print("xchA0");
         break;
       case 'w':
         digitalWrite(chB, LOW);
         Serial.println("xchB0");
-        lcd.clear();
-        lcd.print("xchB0");
         break;
       case 'g':
         digitalWrite(buzzer, LOW);
         Serial.println("xbuz0");
-        lcd.clear();
-        lcd.print("xbuz0");
-        break;
-      case 'd':
-        batts = "v";
-        batts = batts + String(analogRead(battery9), DEC) + ",";
-        batts = batts + String(analogRead(battery12), DEC) + ",";
-        batts = batts + String(analogRead(battery24), DEC);
-        Serial.println(batts);
         break;
       case '_':
         //turn on servo power
-        Serial1.println('_');
+        Serial2.println('_');
         break;
       case '/':
         //turn off servo power
-        Serial1.println('/');
+        Serial2.println('/');
         break;
       case '!':
         //open servo
-        Serial1.println('!');
+        Serial2.println('!');
         break;
       case '#':
         //close servo
-        Serial1.println('#');
+        Serial2.println('#');
         break;
       case '~':
         //get servo status
-        Serial1.println('~');
+        Serial2.println('~');
         break;
       default:
         break;
     }
   }
 
-  if (Serial1.available())
+
+  if (Serial2.available())
   {
-    data = Serial1.readStringUntil('\n');
+    data = Serial2.readStringUntil('\n');
     Serial.println(data);
   }
 
@@ -539,29 +485,42 @@ void loop()
 
   if (igMon && !igMonPrev)
   {
-    digitalWrite(buzzer, HIGH);
     Serial.println("xigMon1");
+    dispBattVoltage();
   }
 
   if (!igMon && igMonPrev)
   {
-    digitalWrite(buzzer, LOW);
+    digitalWrite(igniter, LOW);
     Serial.println("xigMon0");
+    dispBattVoltage();
   }
 
   if (!sysMonPrev && sysMon)
   {
     digitalWrite(igniter, LOW);
-    analogWrite(buzzer, 125);
+    analogWrite(buzzer, lowBuzzLevel);
     closeSolenoids();
     digitalWrite(buzzer, LOW);
     Serial.println("xsMon1");
+    dispBattVoltage();
   }
 
   if (sysMonPrev && !sysMon)
   {
     digitalWrite(igniter, LOW);
     Serial.println("xsMon0");
+    dispBattVoltage();
+  }
+
+  //Digital Battery checks, to detect if batt has been plugged in/unplugged
+  if (digitalRead(battery12) != prev12V) {
+    prev12V = !prev12V;
+    dispBattVoltage();
+  }
+  else if (digitalRead(battery24) != prev24V) {
+    prev24V = !prev24V;
+    dispBattVoltage();
   }
 
   prevTimerState = timerState;
@@ -573,6 +532,7 @@ void loop()
     digitalWrite(prev2, LOW);
     digitalWrite(prev3, LOW);
     digitalWrite(prev4, LOW);
+    dispBattVoltage();
   }
 
   if (checkLC)
@@ -593,45 +553,55 @@ void closeSolenoids()
 {
   igniterState = 0;
   digitalWrite(igniter, igniterState);
-  digitalWrite(n2OFillClose, HIGH);
   Serial.println("xLBnolau");
 
   readyLaunch1 = 0;
   Serial.println("xLBrl10");
 
+  //Temp variable to make screen print "Closing" instead of arm/disarm
+  int sysArmStateHolder = systemArmState;
+  systemArmState = 3;
+
   //  actuateSolenoid(n2OFillClose);
+  dispBattVoltage();
   digitalWrite(n2OFillClose, HIGH);
-  delay(1500);
+  delay(delayTime / 2);
+  dispBattVoltage();
+  delay(delayTime / 2);
   Serial.println("xn2fc");
   digitalWrite(n2OFillClose, LOW);
 
   //  actuateSolenoid(n2OVentClose);
+  dispBattVoltage();
   digitalWrite(n2OVentClose, HIGH);
-  delay(1500);
+  delay(delayTime / 2);
+  dispBattVoltage();
+  delay(delayTime / 2);
   Serial.println("xn2vc");
   digitalWrite(n2OVentClose, LOW);
 
   //  actuateSolenoid(oxyFillClose);
+  dispBattVoltage();
   digitalWrite(oxyFillClose, HIGH);
-  delay(1500);
+  delay(delayTime / 2);
+  dispBattVoltage();
+  delay(delayTime / 2);
   Serial.println("xoxyc");
   digitalWrite(oxyFillClose, LOW);
 
   //  actuateSolenoid(qdAirClose);
+  dispBattVoltage();
   digitalWrite(qdAirClose, HIGH);
-  delay(1500);
+  delay(delayTime / 2);
+  dispBattVoltage();
+  delay(delayTime / 2);
   Serial.println("xqdac");
   digitalWrite(qdAirClose, LOW);
+  systemArmState = sysArmStateHolder;
+  dispBattVoltage();
 
-  //  delay(1500);
-
-  //  digitalWrite(n2OFillClose, LOW);
-  //  digitalWrite(n2OVentClose, LOW);
-  //  digitalWrite(oxyFillClose, LOW);
-  //  digitalWrite(qdAirClose, LOW);
   solsClosed = 1;
 
-  //display batter voltage
 }
 
 void actuateSolenoid(int relay)
@@ -642,37 +612,56 @@ void actuateSolenoid(int relay)
   prevSolenoid = relay;
 
   digitalWrite(relay, HIGH);
-  //    Timer1.initialize(solDelay);
-  //    Timer1.attachInterrupt(Timer1_Interrupt);
   digitalWrite(timerTrigger, LOW);
-  delay(50);
   digitalWrite(timerTrigger, HIGH);
-
-  //  if (relay == n2OVentOpen)
-  //  {
-  //    Timer1.initialize(n2OVentTime);
-  //    Timer1.attachInterrupt(Timer1_Interrupt);
-  //  }
-  //
-  //  if (relay == qdAirOpen)
-  //  {
-  //    Timer1.initialize(qdAirOpenTime);
-  //    Timer1.attachInterrupt(Timer1_Interrupt);
-  //  }
 }
 
-//void Timer1_Interrupt()
-//{
-//  digitalWrite(prevSolenoid, LOW);
-//  digitalWrite(prev2, LOW);
-//  digitalWrite(prev3, LOW);
-//  digitalWrite(prev4, LOW);
-//  Timer1.detachInterrupt();
-//
-////  TIFR1 = 0x00;
-////  TIFR2 = 0x00;
-////  TIFR3 = 0x00;
-////  TIFR4 = 0x00;
-////  TIFR5 = 0x00;
-//}
+void dispBattVoltage() {
+  //Read in battery voltages and store temporarily, convert to voltage, and print
+  int bat9, bat12, bat24;
+  float volt9, volt12, volt24;
+  String line1, line2, volt24Str;
+
+  bat9 = analogRead(battery9);
+  bat12 = analogRead(battery12);
+  bat24 = analogRead(battery24);
+
+  if (bat9 > 65) {  //9V Diode bias and formula
+    volt9 = 0.0097 * float(bat9) + 0.4742;
+  }
+  else {
+    volt9 = 0.0;
+  }
+  if (bat12 > 39) { //12V Diode bias and formula
+    volt12 = 0.0152 * float(bat12) + 0.5152;
+  }
+  else {
+    volt12 = 0.0;
+  }
+  if (bat24 > 17) { //24V Diode bias and formula, subract 12V from other battery to see individual batt. voltage
+    volt24 = (0.0315 * float(bat24) + 0.5752) - volt12;
+    volt24Str = String(volt24) + "V";
+  }
+  else {
+    volt24Str = "---";
+  }
+
+  //Make strings
+  line1 = String(volt12) + "V  " + volt24Str;
+  line2 = String(volt9) + "V  ";
+  if (systemArmState == 1) {
+    line2 = line2 + "Armed";
+  }
+  else if (systemArmState == 3) {
+    line2 = line2 + "Closing";
+  }
+  else {
+    line2 = line2 + "Disarmed";
+  }
+
+  lcd.clear();
+  lcd.print(line1);
+  lcd.setCursor(0, 1);
+  lcd.print(line2);
+}
 

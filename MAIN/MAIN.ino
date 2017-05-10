@@ -28,8 +28,8 @@ bool firstTime = true;
 
 //DAQ Serial Connection Settings
 int baud = 9600;
-int DAQrxPin = 2;
-int DAQtxPin = 3;
+int DAQrxPin = 3;
+int DAQtxPin = 2;
 SoftwareSerial DAQSerial(DAQrxPin, DAQtxPin);
 
 //Hardware Serial and Launch Status Variables
@@ -48,6 +48,8 @@ void setup() {
   DAQSerial.begin(baud);
   Serial.begin(baud);
   //Initiate
+  pinMode(motorControllerPowerPin, OUTPUT);
+  pinMode(valveSignalPWMPin, OUTPUT);
   valveServo.attach(valveSignalPWMPin);// attaches the valve servo object to the PWM output pin
 
 }
@@ -141,7 +143,7 @@ void loop() {
       break;
     case '~':
       //get servo status
-      Serial.println("~" + String(valveServo.read()) + " ::  " + String(valveStatus(valveServo)));
+      Serial.println("~" + String(valveServo.read()) + " :: " + String((valveStatus(valveServo) == 1) ? "open" : "closed"));
       break;
     default:
       break;
@@ -199,7 +201,7 @@ int valveStatus(Servo &valveServo)
 {
   int position = valveServo.read();
   int status = 0;
-  if (position > 100)
+  if (position < 50)
   {
     status = 1;
   }

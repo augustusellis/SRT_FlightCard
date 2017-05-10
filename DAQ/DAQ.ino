@@ -79,7 +79,6 @@ void setup() {
 
 void loop()
 {
-  //  while(Serial.available()==0) {}
   inputCMD = Serial.read();
 
   switch (inputCMD) {
@@ -96,7 +95,6 @@ void loop()
     default:
       break;
   }
-
 }
 
 void initialization()
@@ -130,9 +128,6 @@ void sensorTest()
   //    Serial.println(F("SD file won't open."));
   //    return;
   //  }
-
-  Serial.println(F("Test Start"));
-  myFile.println(F("Test Start"));
   for (int n = 1; n <= 20; n++)
   {
     //    String data = "Sensor Test - Th1: ";
@@ -155,10 +150,6 @@ void sensorTest()
     Serial.println(data);
     delay(500);
   }
-  Serial.println(F("Test End"));
-  myFile.println(F("Test End"));
-  myFile.close();
-
 }
 
 void collectData()
