@@ -80,7 +80,6 @@ void setup() {
 void loop()
 {
         inputCMD = Serial.read();
-
         switch (inputCMD) {
         case 'i':
                 initialization();
@@ -106,11 +105,11 @@ void initialization()
         // Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32
         volume.init(card);
 
-        Serial.println(F("\nFiles found on the card (name, date and size in bytes): "));
+        //Serial.println(F("\nFiles found on the card (name, date and size in bytes): "));
         root.openRoot(volume);
 
         // list all files in the card with date and size
-        root.ls(LS_R | LS_DATE | LS_SIZE);
+        //root.ls(LS_R | LS_DATE | LS_SIZE);
 
         if (!SD.begin(SD_CS)) {
                 Serial.println(F("Initialization failed!"));
