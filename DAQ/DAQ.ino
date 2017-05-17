@@ -39,7 +39,7 @@ Adafruit_MAX31855 thermocouple2(CLK, thermocouple_2_CS, thermocouple_2_DO);
 Adafruit_MAX31855 thermocouple3(CLK, thermocouple_3_CS, thermocouple_3_DO);
 int maxTemp = 1200;
 
-int pressurePin1 = A0;
+int pressurePin1 = A2;
 int pressurePin2 = A3;
 
 double therm1;
@@ -60,225 +60,237 @@ boolean dontExit;
 
 
 void setup() {
-        Serial.begin(baud);
-        pinMode(pressurePin1, INPUT);
-        pinMode(pressurePin2, INPUT);
+  Serial.begin(baud);
+  pinMode(pressurePin1, INPUT);
+  pinMode(pressurePin2, INPUT);
 
-        digitalWrite(engineTempPin1, LOW);
-        pinMode(engineTempPin1, OUTPUT);
-        digitalWrite(engineTempPin2, LOW);
-        pinMode(engineTempPin2, OUTPUT);
-        digitalWrite(engineTempPin3, LOW);
-        pinMode(engineTempPin3, OUTPUT);
+  digitalWrite(engineTempPin1, LOW);
+  pinMode(engineTempPin1, OUTPUT);
+  digitalWrite(engineTempPin2, LOW);
+  pinMode(engineTempPin2, OUTPUT);
+  digitalWrite(engineTempPin3, LOW);
+  pinMode(engineTempPin3, OUTPUT);
 
 
-        Timer1.initialize(10000000);
-        Timer1.attachInterrupt(Timer1_Interrupt);
+  Timer1.initialize(10000000);
+  Timer1.attachInterrupt(Timer1_Interrupt);
 
 }
 
 void loop()
 {
-        inputCMD = Serial.read();
-        switch (inputCMD) {
-        case 'i':
-                initialization();
-                break;
-        case 't':
-                sensorTest();
-                break;
-        case 'c':
-                Serial.println("col");
-                collectData();
-                break;
-        default:
-                break;
-        }
+  inputCMD = Serial.read();
+  switch (inputCMD) {
+    case 'i':
+      initialization();
+      break;
+    case 't':
+      sensorTest();
+      break;
+    case 'c':
+      Serial.println("col");
+      collectData();
+      break;
+    default:
+      break;
+  }
 }
 
 void initialization()
 {
-        if (!card.init(SPI_HALF_SPEED, SD_CS)) {
-                Serial.println(F("Initialization failed."));
-                return;
-        }
-        // Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32
-        volume.init(card);
+  if (!card.init(SPI_HALF_SPEED, SD_CS)) {
+    Serial.println(F("Initialization failed."));
+    return;
+  }
+  // Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32
+  volume.init(card);
 
-        //Serial.println(F("\nFiles found on the card (name, date and size in bytes): "));
-        root.openRoot(volume);
+  //Serial.println(F("\nFiles found on the card (name, date and size in bytes): "));
+  root.openRoot(volume);
 
-        // list all files in the card with date and size
-        //root.ls(LS_R | LS_DATE | LS_SIZE);
+  // list all files in the card with date and size
+  //root.ls(LS_R | LS_DATE | LS_SIZE);
 
-        if (!SD.begin(SD_CS)) {
-                Serial.println(F("Initialization failed!"));
-                return;
-        }
-        Serial.println(F("Initialization done."));
+  if (!SD.begin(SD_CS)) {
+    Serial.println(F("Initialization failed!"));
+    return;
+  }
+  Serial.println(F("Initialization done."));
 
 }
 
 void sensorTest()
 {
-        //  myFile = SD.open("data.txt", FILE_WRITE);
-        //  if(!myFile)
-        //  {
-        //    Serial.println(F("SD file won't open."));
-        //    return;
-        //  }
-        for (int n = 1; n <= 20; n++)
-        {
-                //    String data = "Sensor Test - Th1: ";
-                String data = "z";
-                data = data + String(readThermo(1), DEC);
-                data = data + ",";
-                //    data = data + " Th2: ";
-                data = data + String(readThermo(2), DEC);
-                data = data + ",";
-                //    data = data + " Th3: ";
-                data = data + String(readThermo(3), DEC);
-                data = data + ",";
-                //    data = data + " Pr1: ";
-                data = data + String(readPressure(1), DEC);
-                data = data + ",";
-                //    data = data + " Pr2: ";
-                data = data + String(readPressure(2), DEC);
-                //    data = data + ".";
-                myFile.println(data);
-                Serial.println(data);
-                delay(500);
-        }
+  //  myFile = SD.open("data.txt", FILE_WRITE);
+  //  if(!myFile)
+  //  {
+  //    Serial.println(F("SD file won't open."));
+  //    return;
+  //  }
+  for (int n = 1; n <= 2; n++)
+  {
+    //    String data = "Sensor Test - Th1: ";
+    String data = "z";
+    data = data + String(readThermo(1), DEC);
+    data = data + ",";
+    //    data = data + " Th2: ";
+    data = data + String(readThermo(2), DEC);
+    data = data + ",";
+    //    data = data + " Th3: ";
+    data = data + String(readThermo(3), DEC);
+    data = data + ",";
+    //    data = data + " Pr1: ";
+    data = data + String(readPressure(1), DEC);
+    data = data + ",";
+    //    data = data + " Pr2: ";
+    data = data + String(readPressure(2), DEC);
+    //    data = data + ".";
+    myFile.println(data);
+    Serial.println(data);
+    delay(500);
+  }
 }
 
 void collectData()
 {
-        myFile = SD.open("data.txt", FILE_WRITE);
-        if (!myFile)
-        {
-                Serial.println(F("SD file won't open."));
-                return;
-        }
-        Serial.println(F("Time for Data."));
-        myFile.println(F("Time for Data."));
-        dontExit = 1;
+  myFile = SD.open("data.txt", FILE_WRITE);
+  if (!myFile)
+  {
+    Serial.println(F("SD file won't open."));
+    return;
+  }
+  Serial.println(F("Time for Data."));
+  myFile.println(F("Time for Data."));
+  dontExit = 1;
 
-        while (dontExit)
-        {
-                //    therm1 = readThermo(1);
-                //    therm2 = readThermo(2);
-                //    therm3 = readThermo(3);
-                press1 = readPressure(1);
-                press2 = readPressure(2);
+  while (dontExit)
+  {
+    //    therm1 = readThermo(1);
+    //    therm2 = readThermo(2);
+    //    therm3 = readThermo(3);
+    press1 = readPressure(1);
+    press2 = readPressure(2);
 
-                //    String data = "Th1: ";
-                String data = "z";
-                data = data + String(therm1, DEC);
-                data = data + ",";
-                //    data = data + " Th2: ";
-                data = data + String(therm2, DEC);
-                data = data + ",";
-                //    data = data + " Th3: ";
-                data = data + String(therm3, DEC);
-                data = data + ",";
-                //    data = data + " Pr1: ";
-                data = data + String(press1, DEC);
-                data = data + ",";
-                //    data = data + " Pr2: ";
-                data = data + String(press2, DEC);
-                //    data = data + ".";
-                myFile.println(data);
-                Serial.println(data);
+    //    String data = "Th1: ";
+    String data = "z";
+    data = data + String(therm1, DEC);
+    data = data + ",";
+    //    data = data + " Th2: ";
+    data = data + String(therm2, DEC);
+    data = data + ",";
+    //    data = data + " Th3: ";
+    data = data + String(therm3, DEC);
+    data = data + ",";
+    //    data = data + " Pr1: ";
+    data = data + String(press1, DEC);
+    data = data + ",";
+    //    data = data + " Pr2: ";
+    data = data + String(press2, DEC);
+    //    data = data + ".";
+    myFile.println(data);
+    Serial.println(data);
 
-                checkParams();
+    checkParams();
 
-                if (Serial.read() == 'e')
-                {
-                        dontExit = 0;
-                        myFile.println(F("Data Collection Ended."));
-                        Serial.println(F("Data Collection Ended."));
-                }
+    if (Serial.read() == 'e')
+    {
+      dontExit = 0;
+      myFile.println(F("Data Collection Ended."));
+      Serial.println(F("Data Collection Ended."));
+    }
 
-                if (timeToClose)
-                {
-                        timeToClose = false;
-                        myFile.close();
-                        myFile = SD.open("data.txt", FILE_WRITE);
-                        if (!myFile)
-                        {
-                                Serial.println(F("SD file won't open."));
-                        }
-                }
+    if (timeToClose)
+    {
+      timeToClose = false;
+      myFile.close();
+      myFile = SD.open("data.txt", FILE_WRITE);
+      if (!myFile)
+      {
+        Serial.println(F("SD file won't open."));
+      }
+    }
 
-                delay(5);
+    delay(5);
 
-        }
-        myFile.close();
+  }
+  myFile.close();
 
 }
 
 double readThermo(int therm)
 {
 
-        if (therm == 1)
-        {
-                return thermocouple1.readCelsius();
-        }
+  if (therm == 1)
+  {
+    return thermocouple1.readCelsius();
+  }
 
-        if (therm == 2)
-        {
-                return thermocouple2.readCelsius();
-        }
+  if (therm == 2)
+  {
+    return thermocouple2.readCelsius();
+  }
 
-        if (therm == 3)
-        {
-                return thermocouple3.readCelsius();
-        }
+  if (therm == 3)
+  {
+    return thermocouple3.readCelsius();
+  }
 
 
-        return -9999;
+  return -9999;
 }
 
 double readPressure(int pres)
 {
-        if (pres == 1)
-        {
-                return analogRead(pressurePin1);
-        }
+  if (pres == 1)
+  {
+    return analogReadAvg(pressurePin1, 20);
+  }
 
-        if (pres == 2)
-        {
-                return analogRead(pressurePin2);
-        }
-        return -9999;
+  if (pres == 2)
+  {
+    return analogReadAvg(pressurePin2, 20);
+  }
+  return -9999;
 }
 
 void  checkParams()
 {
-        int count = 0;
-        if (therm1 > maxTemp)
-        {
-                count++;
-        }
-        if (therm2 > maxTemp)
-        {
-                count++;
-        }
-        if (therm3 > maxTemp)
-        {
-                count++;
-        }
+  int count = 0;
+  if (therm1 > maxTemp)
+  {
+    count++;
+  }
+  if (therm2 > maxTemp)
+  {
+    count++;
+  }
+  if (therm3 > maxTemp)
+  {
+    count++;
+  }
 
-        if (count >= 2)
-        {
-                myFile.println(F("Engine too hot."));
-                //    digitalWrite(engineTempPin1, HIGH;
-                //    digitalWrite(engineTempPin2, HIGH;
-                //    digitalWrite(engineTempPin3, HIGH;
-        }
+  if (count >= 2)
+  {
+    myFile.println(F("Engine too hot."));
+    //    digitalWrite(engineTempPin1, HIGH;
+    //    digitalWrite(engineTempPin2, HIGH;
+    //    digitalWrite(engineTempPin3, HIGH;
+  }
+}
+
+double analogReadAvg(int pinToRead, int numberOfReadings)
+//function that uses the fluctuation in the reading to approximate higher resolutions, google "Dithering"
+{
+  double runningAverage = 0;
+  for (int i = 0; i < numberOfReadings; ++i)
+  {
+    runningAverage = runningAverage + analogRead(pinToRead);
+  }
+  return runningAverage/numberOfReadings;
 }
 
 void Timer1_Interrupt()
 {
-        timeToClose = true;
+  timeToClose = true;
 }
+

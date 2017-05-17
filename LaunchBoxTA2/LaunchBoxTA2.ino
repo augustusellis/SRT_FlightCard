@@ -96,12 +96,13 @@ int igniterTest = 42;
 int preArmMonitor = 35;
 int igniterDisable = 37;
 
-int loadCell1 = A10;
-int loadCell2 = A11;
-int loadCell3 = A12;
-int loadCellPin1;
-int loadCellPin2;
-int loadCellPin3;
+int loadCell1 = 0;
+int loadCell2 = 0;
+int loadCell3 = 0;
+double loadCellTotal_lbs = 0;
+int loadCellPin1 = A10;
+int loadCellPin2 = A11;
+int loadCellPin3 = A12;
 String lc;
 boolean checkLC = 1;
 
@@ -114,7 +115,7 @@ boolean checkBatts = 1;
 void setup()
 {
   Serial.begin(9600);
-  Serial3.begin(9600);
+  Serial2.begin(9600);
   delay(100);
   Serial.print("+++");
   //  delay(100);
@@ -125,7 +126,7 @@ void setup()
   Serial.flush();
   delay(2);
   Serial.end();
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   digitalWrite(systemArm, LOW);
   digitalWrite(igniterArm, LOW);
@@ -216,10 +217,12 @@ void loop()
       loadCell1 = analogRead(loadCellPin1);
       loadCell2 = analogRead(loadCellPin2);
       loadCell3 = analogRead(loadCellPin3);
+      loadCellTotal_lbs = ((loadCell1 + loadCell2 + loadCell3)/1024.0*5) * 25 - 12.5*3;
       lc = "w";
       lc = lc + String(loadCell1, DEC) + ",";
       lc = lc + String(loadCell2, DEC) + ",";
-      lc = lc + String(loadCell3, DEC);
+      lc = lc + String(loadCell3, DEC) + ",";
+      lc = lc + String(loadCellTotal_lbs, DEC);
       Serial.println(lc);
     }
     //                checkLC = !checkLC;
@@ -229,54 +232,53 @@ void loop()
   if (Serial.available() > 0)
   {
     missionCMD = Serial.read();
-    //Serial3.print(missionCMD);
+    //Serial2.print(missionCMD);
 
     switch (missionCMD) {
       case 'a':
-        Serial3.println('a');
+        Serial2.println('a');
         readyLaunch1 = 0;
         readyLaunch2 = 0;
         Serial.println("xLBabo");
         break;
       case 'i':
-        Serial3.println('i');
+        Serial2.println('i');
         Serial.println("LB: i passed");
         break;
       case 't':
-        Serial3.println('t');
+        Serial2.println('t');
         Serial.println("LB: t passed");
         break;
       case 'c':
-        Serial3.println('c');
+        Serial2.println('c');
         Serial.print(random(0, 100));
         Serial.print("    ");
         Serial.println("LB: c passed");
-
         break;
       case 'e':
-        Serial3.println('e');
+        Serial2.println('e');
         Serial.println("LB: e passed");
         break;
       case 'r':
-        Serial3.println('r');
+        Serial2.println('r');
         readyLaunch1 = 1;
         //      Serial.println("LB: r passed");
         Serial.println("xLBrl11");
         break;
       case 'f':
-        Serial3.println('f');
+        Serial2.println('f');
         readyLaunch2 = 1;
         //      Serial.println("LB: f passed");
         Serial.println("xLBrl21");
         break;
       case 'u':
-        Serial3.println('u');
+        Serial2.println('u');
         readyLaunch1 = 0;
         //      Serial.println("LB: u passed");
         Serial.println("xLBrl10");
         break;
       case 'j':
-        Serial3.println('j');
+        Serial2.println('j');
         readyLaunch2 = 0;
         //      Serial.println("LB: j passed");
         Serial.println("xLBrl20");
@@ -284,7 +286,7 @@ void loop()
       case 'l':
         if (readyLaunch1 && readyLaunch2)
         {
-          Serial3.println('l');
+          Serial2.println('l');
           igniterState = 1;
           digitalWrite(igniter, igniterState);
           Serial.println("xLBlau");
@@ -305,7 +307,7 @@ void loop()
         dispBattVoltage();
         break;
       case 's':
-        Serial3.println('s');
+        Serial2.println('s');
         Serial.println("LB: s passed");
         break;
       case 'p':
@@ -459,38 +461,38 @@ void loop()
         digitalWrite(buzzer, LOW);
         Serial.println("xbuz0");
         break;
-//      case '_':
-//        //turn on servo power
-//        Serial3.println('_');
-//        break;
-//      case '/':
-//        //turn off servo power
-//        Serial3.println('/');
-//        break;
-//      case '!':
-//        //open servo
-//        Serial3.println('!');
-//        break;
-//      case '#':
-//        //close servo
-//        Serial3.println('#');
-//        break;
-//      case '~':
-//        //get servo status
-//        Serial3.println('~');
-//        break;
+      case '_':
+        //turn on servo power
+        Serial2.println('_');
+        break;
+      case '/':
+        //turn off servo power
+        Serial2.println('/');
+        break;
+      case '!':
+        //open servo
+        Serial2.println('!');
+        break;
+      case '#':
+        //close servo
+        Serial2.println('#');
+        break;
+      case '~':
+        //get servo status
+        Serial2.println('~');
+        break;
       default:
         break;
     }
   }
 
 
-//  if (Serial3.available() > 0)
-//  {
-//    data = Serial3.readStringUntil('\n');
-//    Serial.println(data);
-//   // Serial.println("Main Serial Returns Values.");
-//  }
+  if (Serial2.available() > 0)
+  {
+    data = Serial2.readStringUntil('\n');
+    Serial.println(data);
+   // Serial.println("Main Serial Returns Values.");
+  }
 
   sysMonPrev = sysMon;
   sysMon = digitalRead(preArmMonitor);

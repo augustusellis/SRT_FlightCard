@@ -132,17 +132,16 @@ void setup()
 
 void loop()
 {
-  //Serial.println("Working");
+ // Serial.println("Working");
   if (Serial.available() > 0) {
     missionCMD = Serial.read();
-  
-  Serial3.println(missionCMD);
-  Serial.println("Sent "+ missionCMD);
+    Serial.println(missionCMD);
+    //Serial3.println(missionCMD);
   }
-  if (Serial3.available() > 0)
-  {
-    data = Serial3.readStringUntil('\n');
-    Serial.println(data);
-    Serial.println("Main Serial Returns Values.");
-  }
+//  if (Serial3.available() > 0)
+//  {
+//    data = Serial3.readStringUntil('\n');
+//    Serial.println(data);
+//    Serial.println("Main Serial Returns Values.");
+//  }
 }
